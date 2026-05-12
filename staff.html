@@ -31,9 +31,10 @@
       <button class="nav-item" onclick="showPage('inventory')" id="nav-inventory"><span class="nav-icon">📦</span>Inventory <span class="nav-badge" id="badge-inv">3</span></button>
       <button class="nav-item" onclick="showPage('pharmacy')" id="nav-pharmacy"><span class="nav-icon">💊</span>Pharmacy & Labs</button>
       <button class="nav-item" onclick="showPage('staff')" id="nav-staff"><span class="nav-icon">👩‍💼</span>Staff Directory</button>
+      <button class="nav-item" onclick="showPage('history')" id="nav-history"><span class="nav-icon">📜</span>Patient History</button>
       <div class="nav-section-label">Other</div>
       <button class="nav-item" onclick="showPage('doctors')" id="nav-doctors"><span class="nav-icon">👨‍⚕️</span>Doctor Directory</button>
-      <button class="nav-item" onclick="showPage('reports')" id="nav-reports"><span class="nav-icon">📊</span>Reports</button>
+
     </nav>
     <div class="sidebar-footer">
       <div class="user-card" id="userCard">
@@ -228,6 +229,20 @@
       <input type="hidden" id="pbId" />
       <div style="margin-bottom:12px">Balance Due: <strong style="color:var(--danger)" id="pbBalance">₹0</strong></div>
       <div class="form-group"><label class="form-label">Payment Amount (₹)</label><input class="form-control" id="pbAmount" type="number" placeholder="e.g. 1000"/></div>
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-control" id="pbMethod" onchange="toggleUPIInfo()">
+          <option value="Cash">💵 Cash</option>
+          <option value="Card">💳 Card</option>
+          <option value="UPI">📱 UPI</option>
+        </select>
+      </div>
+      <div id="upiInfo" style="display:none;background:var(--bg-2);padding:12px;border-radius:6px;text-align:center;margin-top:12px;border:1px dashed var(--primary)">
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:8px">Scan QR to Pay</div>
+        <img src="images/upi_qr.png" style="width:140px;height:140px;background:#fff;margin:0 auto 8px;display:block;border:1px solid #ddd;border-radius:4px" />
+        <div style="font-size:14px;font-weight:700;color:var(--primary)">medcore@upi</div>
+        <div style="font-size:11px;color:var(--text-3)">MedCore Hospital Services</div>
+      </div>
       <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
         <button class="btn btn-secondary" onclick="closeModal('payBillModal')">Cancel</button>
         <button class="btn btn-success" onclick="processPayment()">💳 Pay</button>
@@ -273,6 +288,28 @@
       <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
         <button class="btn btn-secondary" onclick="closeModal('updateStockModal')">Cancel</button>
         <button class="btn btn-primary" onclick="updateStock()">🔄 Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Lab Result Modal -->
+<div class="modal-overlay" id="labResultModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Enter Lab Results</h3>
+      <button class="modal-close" onclick="closeModal('labResultModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="lrId" />
+      <div id="lrInfo" style="margin-bottom:16px;background:var(--bg-3);padding:12px;border-radius:6px">
+        <div style="font-size:14px;font-weight:700" id="lrTestName"></div>
+        <div style="font-size:12px;color:var(--text-2)" id="lrPatientName"></div>
+      </div>
+      <div id="lrFieldsContainer"></div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-secondary" onclick="closeModal('labResultModal')">Cancel</button>
+        <button class="btn btn-success" onclick="saveLabResult()">🧪 Save Results</button>
       </div>
     </div>
   </div>
