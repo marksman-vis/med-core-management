@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MedCore HMS — Staff Portal</title>
+<meta name="description" content="Staff portal for MedCore Hospital Management System."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/staff.css"/>
+<link rel="stylesheet" href="css/print.css" media="print"/>
+</head>
+<body>
+<script>if(localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');</script>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"></div>
+      <div><div class="logo-text">MedCore</div><div class="logo-sub">Staff Portal</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">🏠</span>Dashboard</button>
+      <button class="nav-item" onclick="showPage('admissions')" id="nav-admissions"><span class="nav-icon">🛏️</span>Admissions</button>
+      <button class="nav-item" onclick="showPage('beds')" id="nav-beds"><span class="nav-icon">🏨</span>Bed Management</button>
+      <div class="nav-section-label">Operations</div>
+      <button class="nav-item" onclick="showPage('appointments')" id="nav-appointments"><span class="nav-icon">📅</span>Appointments</button>
+      <button class="nav-item" onclick="showPage('billing')" id="nav-billing"><span class="nav-icon">💰</span>Billing</button>
+      <button class="nav-item" onclick="showPage('inventory')" id="nav-inventory"><span class="nav-icon">📦</span>Inventory <span class="nav-badge" id="badge-inv">3</span></button>
+      <button class="nav-item" onclick="showPage('pharmacy')" id="nav-pharmacy"><span class="nav-icon">💊</span>Pharmacy & Labs</button>
+      <button class="nav-item" onclick="showPage('staff')" id="nav-staff"><span class="nav-icon">👩‍💼</span>Staff Directory</button>
+      <button class="nav-item" onclick="showPage('history')" id="nav-history"><span class="nav-icon">📜</span>Patient History</button>
+      <div class="nav-section-label">Other</div>
+      <button class="nav-item" onclick="showPage('doctors')" id="nav-doctors"><span class="nav-icon">👨‍⚕️</span>Doctor Directory</button>
+
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" id="userCard">
+        <div class="user-avatar" id="userAvatar">RP</div>
+        <div><div class="user-name" id="userName">Rajni Patil</div><div class="user-role" id="userRole">Receptionist</div></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="width:100%;margin-top:8px;" onclick="logout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" onclick="toggleSidebar()" style="display:none">☰</button>
+      <h2 class="topbar-title" id="pageTitle">Dashboard</h2>
+      <div class="topbar-search"><span>🔍</span><input type="text" id="globalSearch" placeholder="Search patients, beds…"/></div>
+      <div class="icon-btn" title="Notifications">🔔<span class="badge">5</span></div>
+      <div class="icon-btn" title="Theme" onclick="toggleTheme()">🌙</div>
+    </header>
+    <div class="page-content animate-fadeIn" id="pageContent"></div>
+  </div>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal-overlay" id="bookApptModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Book Appointment</h3>
+      <button class="modal-close" onclick="closeModal('bookApptModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Patient</label>
+        <select class="form-control" id="baPatient"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Doctor</label>
+        <select class="form-control" id="baDoctor"></select>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-control" id="baDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <input type="time" class="form-control" id="baTime">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-control" id="baType">
+          <option>Consultation</option><option>Follow-up</option><option>Routine Checkup</option><option>Emergency</option><option>New Patient</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-control" id="baNotes" rows="2" placeholder="Reason for visit..."></textarea>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('bookApptModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAppointment()">📅 Book Appointment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- Billing Modal -->
+<div class="modal-overlay" id="billModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Bill Details</h3>
+      <button class="modal-close" onclick="closeModal('billModal')">✕</button>
+    </div>
+    <div class="modal-body" id="billModalBody"></div>
+  </div>
+</div>
+
+<!-- Add Patient Modal -->
+<div class="modal-overlay" id="addPatientModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Register New Patient</h3>
+      <button class="modal-close" onclick="closeModal('addPatientModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="apName" placeholder="e.g. Amit Patel"/></div>
+        <div class="form-group"><label class="form-label">Phone *</label><input class="form-control" id="apPhone" placeholder="+91-99001-XXXXX"/></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Age *</label><input class="form-control" id="apAge" type="number" min="0" max="120" placeholder="e.g. 45"/></div>
+        <div class="form-group"><label class="form-label">Gender *</label><select class="form-control" id="apGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Blood Group</label><select class="form-control" id="apBlood"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="apEmail" type="email" placeholder="email@example.com"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Address</label><input class="form-control" id="apAddress" placeholder="Full address"/></div>
+      <div class="form-group"><label class="form-label">Emergency Contact</label><input class="form-control" id="apEmergency" placeholder="Name (Phone)"/></div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Insurance ID</label><input class="form-control" id="apInsurance" placeholder="INS-XXX-XXXX"/></div>
+        <div class="form-group"><label class="form-label">Attending Doctor</label><select class="form-control" id="apDoctor"></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Allergies (comma-separated)</label><input class="form-control" id="apAllergies" placeholder="e.g. Penicillin, Sulfa"/></div>
+      <div class="form-group"><label class="form-label">Medical Conditions (comma-separated)</label><input class="form-control" id="apConditions" placeholder="e.g. Hypertension, Diabetes"/></div>
+      <div class="form-group"><label class="form-label">Registration Type *</label><select class="form-control" id="apType"><option value="OPD">OPD (Outpatient)</option><option value="admitted">Admit (Inpatient)</option></select></div>
+      <div id="admitFields" style="display:none">
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">Ward</label><select class="form-control" id="apWard"></select></div>
+          <div class="form-group"><label class="form-label">Bed</label><select class="form-control" id="apBed"></select></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeModal('addPatientModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewPatient()">👤 Register Patient</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admit Existing Patient Modal -->
+<div class="modal-overlay" id="admitModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Admit Patient</h3>
+      <button class="modal-close" onclick="closeModal('admitModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Patient</label><select class="form-control" id="admPatient"></select></div>
+      <div class="form-group"><label class="form-label">Ward</label><select class="form-control" id="admWard"></select></div>
+      <div class="form-group"><label class="form-label">Bed</label><select class="form-control" id="admBed"></select></div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeModal('admitModal')">Cancel</button>
+        <button class="btn btn-success" onclick="admitPatient()">🛏️ Admit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bed Action Modal -->
+<div class="modal-overlay" id="bedActionModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="bedActionTitle">Bed Action</h3>
+      <button class="modal-close" onclick="closeModal('bedActionModal')">✕</button>
+    </div>
+    <div class="modal-body" id="bedActionBody"></div>
+  </div>
+</div>
+
+<!-- View Patient Modal -->
+<div class="modal-overlay" id="viewPatientModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="vpTitle">Patient Details</h3>
+      <button class="modal-close" onclick="closeModal('viewPatientModal')">✕</button>
+    </div>
+    <div class="modal-body" id="vpBody"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--card-border)">
+      <button class="btn btn-secondary" onclick="closeModal('viewPatientModal')">Close</button>
+      <button class="btn btn-primary" id="vpPrintBtn" onclick="printPatient()">🖨️ Print Patient Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- Print Frame (hidden) -->
+<div id="printFrame" style="display:none"></div>
+
+<!-- Generate Bill Modal -->
+<div class="modal-overlay" id="generateBillModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header"><h3 class="modal-title">Generate New Bill</h3><button class="modal-close" onclick="closeModal('generateBillModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Patient</label><select class="form-control" id="gbPatient"></select></div>
+      <div class="form-group"><label class="form-label">Item Description</label><input class="form-control" id="gbDesc" placeholder="e.g. Consultation, Lab Test..."/></div>
+      <div class="form-group"><label class="form-label">Amount (₹)</label><input class="form-control" id="gbAmount" type="number" placeholder="e.g. 500"/></div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeModal('generateBillModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="generateBill()">🧾 Create Bill</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Process Payment Modal -->
+<div class="modal-overlay" id="payBillModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><h3 class="modal-title">Process Payment</h3><button class="modal-close" onclick="closeModal('payBillModal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pbId" />
+      <div style="margin-bottom:12px">Balance Due: <strong style="color:var(--danger)" id="pbBalance">₹0</strong></div>
+      <div class="form-group"><label class="form-label">Payment Amount (₹)</label><input class="form-control" id="pbAmount" type="number" placeholder="e.g. 1000"/></div>
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-control" id="pbMethod" onchange="toggleUPIInfo()">
+          <option value="Cash">💵 Cash</option>
+          <option value="Card">💳 Card</option>
+          <option value="UPI">📱 UPI</option>
+        </select>
+      </div>
+      <div id="upiInfo" style="display:none;background:var(--bg-2);padding:12px;border-radius:6px;text-align:center;margin-top:12px;border:1px dashed var(--primary)">
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:8px">Scan QR to Pay</div>
+        <img src="images/upi_qr.png" style="width:140px;height:140px;background:#fff;margin:0 auto 8px;display:block;border:1px solid #ddd;border-radius:4px" />
+        <div style="font-size:14px;font-weight:700;color:var(--primary)">medcore@upi</div>
+        <div style="font-size:11px;color:var(--text-3)">MedCore Hospital Services</div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeModal('payBillModal')">Cancel</button>
+        <button class="btn btn-success" onclick="processPayment()">💳 Pay</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Inventory Modal -->
+<div class="modal-overlay" id="addInvModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header"><h3 class="modal-title">Add Inventory Item</h3><button class="modal-close" onclick="closeModal('addInvModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Item Name</label><input class="form-control" id="aiName" placeholder="e.g. Ibuprofen 400mg"/></div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Category</label><input class="form-control" id="aiCat" placeholder="e.g. Tablets"/></div>
+        <div class="form-group"><label class="form-label">Unit</label><input class="form-control" id="aiUnit" placeholder="e.g. Tab"/></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Initial Stock</label><input class="form-control" type="number" id="aiStock"/></div>
+        <div class="form-group"><label class="form-label">Min Stock Level</label><input class="form-control" type="number" id="aiMin"/></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Price (₹)</label><input class="form-control" type="number" id="aiPrice"/></div>
+        <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-control" type="month" id="aiExpiry"/></div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeModal('addInvModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="addInventory()">📦 Add Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Stock Modal -->
+<div class="modal-overlay" id="updateStockModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><h3 class="modal-title">Update Stock</h3><button class="modal-close" onclick="closeModal('updateStockModal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="usId" />
+      <div style="margin-bottom:12px">Item: <strong id="usName"></strong> (Current: <span id="usCurrent"></span>)</div>
+      <div class="form-group"><label class="form-label">Quantity to Add/Remove</label><input class="form-control" id="usQty" type="number" placeholder="e.g. 50 or -10"/></div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeModal('updateStockModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="updateStock()">🔄 Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Lab Result Modal -->
+<div class="modal-overlay" id="labResultModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Enter Lab Results</h3>
+      <button class="modal-close" onclick="closeModal('labResultModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="lrId" />
+      <div id="lrInfo" style="margin-bottom:16px;background:var(--bg-3);padding:12px;border-radius:6px">
+        <div style="font-size:14px;font-weight:700" id="lrTestName"></div>
+        <div style="font-size:12px;color:var(--text-2)" id="lrPatientName"></div>
+      </div>
+      <div id="lrFieldsContainer"></div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-secondary" onclick="closeModal('labResultModal')">Cancel</button>
+        <button class="btn btn-success" onclick="saveLabResult()">🧪 Save Results</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js?v=6"></script>
+<script src="js/staff.js?v=6"></script>
+</body>
+</html>
