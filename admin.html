@@ -28,6 +28,7 @@ if(localStorage.getItem('theme') === 'light') document.body.classList.add('light
       <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">🏠</span>Dashboard</button>
       <button class="nav-item" onclick="showPage('doctors')" id="nav-doctors"><span class="nav-icon">👨‍⚕️</span>Manage Doctors</button>
       <button class="nav-item" onclick="showPage('staff')" id="nav-staff"><span class="nav-icon">👩‍💼</span>Manage Staff</button>
+      <button class="nav-item" onclick="showPage('backup')" id="nav-backup"><span class="nav-icon">💾</span>System Backup</button>
     </nav>
     <div class="sidebar-footer">
       <div class="user-card" id="userCard">
@@ -35,7 +36,7 @@ if(localStorage.getItem('theme') === 'light') document.body.classList.add('light
         <div><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">System Admin</div></div>
       </div>
       <button class="btn btn-secondary btn-sm" style="width:100%;margin-top:8px;" onclick="logout()">🚪 Logout</button>
-      <button class="btn btn-sm" style="width:100%;margin-top:8px;background:#ff4d4f;color:white;border:none;" onclick="emergencyReset()">⚠️ Emergency Reset</button>
+
     </div>
   </aside>
 
