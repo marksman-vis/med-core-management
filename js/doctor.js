@@ -11,6 +11,7 @@ var currentPage='dashboard';
   document.getElementById('badge-patients').textContent=myPatients.length;
   const pendingLabs=HMS.labResults.filter(l=>l.orderedBy===docId&&l.status!=='completed');
   document.getElementById('badge-labs').textContent=pendingLabs.length;
+
   showPage('dashboard');
 })();
 
@@ -40,9 +41,12 @@ function renderDashboard(el){
     <div class="kpi-card" style="--kpi-color:var(--danger);--kpi-rgb:239,68,68"><div class="kpi-top"><div class="kpi-icon">⚠️</div></div><div class="kpi-value">${critLabs.length}</div><div class="kpi-label">Critical Labs</div></div>
   </div>
   <div class="grid-2">
+    <div class="card"><div class="card-header"><span class="card-title">Recent Lab Results</span></div><div class="card-body">
+      ${HMS.labResults.filter(l=>l.orderedBy===docId&&l.status==='completed').sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(l=>{const p=HMS.getPatient(l.patientId);return`<div class="appt-item" onclick="openPatientModal('${p?p.id:''}')" style="cursor:pointer"><div><div style="font-weight:700">${l.test}</div><div style="font-size:12px;color:var(--text-2)">${p?p.name:'Unknown'} · ${HMS.fmt.date(l.date)}</div></div><span class="badge badge-success">READY</span></div>`}).join('')||'<div class="empty-state"><p>No results yet</p></div>'}
+    </div></div>
     <div class="card"><div class="card-header"><span class="card-title">Upcoming Appointments</span></div><div class="card-body">${todayAppts.slice(0,5).map(a=>{const p=HMS.getPatient(a.patientId);return`<div class="appt-item"><div class="appt-time"><div class="hour">${HMS.fmt.time(a.time)}</div></div><div class="appt-info"><div class="appt-name">${p?p.name:'Unknown'}</div><div class="appt-type">${a.type} — ${a.notes||''}</div></div><span class="badge badge-${a.status==='confirmed'?'success':'warning'}">${a.status}</span></div>`;}).join('')||'<div class="empty-state"><p>No upcoming appointments</p></div>'}</div></div>
-    <div class="card"><div class="card-header"><span class="card-title">Admitted Patients</span></div><div class="card-body">${pts.filter(p=>p.status==='admitted'||p.status==='ICU').map(p=>`<div class="appt-item" onclick="openPatientModal('${p.id}')" style="cursor:pointer"><div class="patient-card-avatar">${p.avatar}</div><div class="appt-info"><div class="appt-name">${p.name}</div><div class="appt-type">${p.ward} — Bed ${p.bed}</div></div><span class="badge badge-${p.status==='ICU'?'danger':'info'}">${p.status}</span></div>`).join('')||'<div class="empty-state"><p>No admitted patients</p></div>'}</div></div>
   </div>
+  <div class="card mt-24"><div class="card-header"><span class="card-title">Admitted Patients</span></div><div class="card-body">${pts.filter(p=>p.status==='admitted'||p.status==='ICU').map(p=>`<div class="appt-item" onclick="openPatientModal('${p.id}')" style="cursor:pointer"><div class="patient-card-avatar">${p.avatar}</div><div class="appt-info"><div class="appt-name">${p.name}</div><div class="appt-type">${p.ward} — Bed ${p.bed}</div></div><span class="badge badge-${p.status==='ICU'?'danger':'info'}">${p.status}</span></div>`).join('')||'<div class="empty-state"><p>No admitted patients</p></div>'}</div></div>
   <div class="card mt-24"><div class="card-header"><span class="card-title">Weekly Patient Volume</span></div><div class="card-body"><div class="chart-area"><div class="bar-chart">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d,i)=>{const v=[6,8,5,9,7,3,2][i];return`<div class="bar-wrap"><div class="bar-val">${v}</div><div class="bar" style="height:${v*12}px"></div><div class="bar-label">${d}</div></div>`;}).join('')}</div></div></div></div>`;
 }
 
@@ -250,7 +254,11 @@ function populateRxModal(){
   document.getElementById('rxDrugsContainer').innerHTML = `
     <div class="rx-drug-row" style="background:var(--bg-2);padding:12px;border-radius:6px;margin-bottom:12px;position:relative">
       <button class="icon-btn" style="position:absolute;top:4px;right:4px;color:var(--danger)" onclick="this.parentElement.remove()">✕</button>
-      <div class="form-group"><label class="form-label">Drug Name</label><input class="form-control rx-drug-name" placeholder="e.g. Amlodipine"/></div>
+      <div class="form-group suggestion-wrap">
+        <label class="form-label">Drug Name</label>
+        <input class="form-control rx-drug-name" oninput="handleDrugInput(this)" placeholder="e.g. Amlodipine" autocomplete="off"/>
+        <div class="suggestion-list" style="display:none"></div>
+      </div>
       <div class="grid-2">
         <div class="form-group"><label class="form-label">Dose</label><input class="form-control rx-drug-dose" placeholder="e.g. 5mg"/></div>
         <div class="form-group"><label class="form-label">Frequency</label><select class="form-control rx-drug-freq"><option>Once daily</option><option>Twice daily</option><option>Three times daily</option><option>PRN</option><option>Once at night</option></select></div>
@@ -264,7 +272,11 @@ function addRxDrugRow() {
   div.style.cssText = 'background:var(--bg-2);padding:12px;border-radius:6px;margin-bottom:12px;position:relative';
   div.innerHTML = `
     <button class="icon-btn" style="position:absolute;top:4px;right:4px;color:var(--danger)" onclick="this.parentElement.remove()">✕</button>
-    <div class="form-group"><label class="form-label">Drug Name</label><input class="form-control rx-drug-name" placeholder="e.g. Amlodipine"/></div>
+    <div class="form-group suggestion-wrap">
+      <label class="form-label">Drug Name</label>
+      <input class="form-control rx-drug-name" oninput="handleDrugInput(this)" placeholder="e.g. Amlodipine" autocomplete="off"/>
+      <div class="suggestion-list" style="display:none"></div>
+    </div>
     <div class="grid-2">
       <div class="form-group"><label class="form-label">Dose</label><input class="form-control rx-drug-dose" placeholder="e.g. 5mg"/></div>
       <div class="form-group"><label class="form-label">Frequency</label><select class="form-control rx-drug-freq"><option>Once daily</option><option>Twice daily</option><option>Three times daily</option><option>PRN</option><option>Once at night</option></select></div>
@@ -374,3 +386,100 @@ function handleSearch(v){
     document.querySelectorAll('#pageContent .table tbody tr').forEach(tr=>{ tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none'; });
   }
 }
+
+// ── Drug Suggestion Logic (YouTube Style) ──
+function handleDrugInput(input) {
+  const query = input.value.trim().toLowerCase();
+  const wrap = input.closest('.suggestion-wrap');
+  const listEl = wrap ? wrap.querySelector('.suggestion-list') : null;
+  
+  if (!listEl) return;
+  if (!query || query.length < 1) { listEl.style.display = 'none'; return; }
+  
+  try {
+    // Get all unique drugs from Inventory and Common list
+    const inv = (HMS && HMS.inventory) ? HMS.inventory : [];
+    const common = (HMS && HMS.commonDrugs) ? HMS.commonDrugs : [];
+    
+    // Create a map to track stock status
+    const drugMap = new Map();
+    
+    // Add inventory items
+    inv.forEach(item => {
+      if (!item || !item.name) return;
+      const baseName = item.name.split(' ')[0];
+      drugMap.set(item.name.toLowerCase(), { name: item.name, inStock: item.stock > 0 });
+      if (baseName) drugMap.set(baseName.toLowerCase(), { name: baseName, inStock: item.stock > 0 });
+    });
+    
+    // Add common drugs
+    common.forEach(name => {
+      if (!name) return;
+      const ln = name.toLowerCase();
+      if (!drugMap.has(ln)) {
+        drugMap.set(ln, { name: name, inStock: false }); 
+      }
+    });
+    
+    const matches = Array.from(drugMap.values())
+      .filter(d => d.name.toLowerCase().includes(query))
+      .sort((a, b) => {
+        const aStart = a.name.toLowerCase().startsWith(query);
+        const bStart = b.name.toLowerCase().startsWith(query);
+        if (aStart && !bStart) return -1;
+        if (!aStart && bStart) return 1;
+        if (a.inStock && !b.inStock) return -1;
+        if (!a.inStock && b.inStock) return 1;
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, 10);
+      
+    if (matches.length === 0) { listEl.style.display = 'none'; return; }
+    
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    
+    listEl.innerHTML = matches.map(m => {
+      const highlighted = m.name.replace(regex, '<span class="match">$1</span>');
+      const stockClass = m.inStock ? 'stock-in' : 'stock-out';
+      const stockText = m.inStock ? 'In Stock' : 'Out of Stock';
+      return `
+        <div class="suggestion-item" style="display:flex;justify-content:space-between;padding:10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05)" onmousedown="selectDrugSuggestion(this, '${m.name.replace(/'/g, "\\'")}')">
+          <div>${highlighted}</div>
+          <span class="stock-tag ${stockClass}" style="font-size:10px;padding:2px 6px;border-radius:4px">${stockText}</span>
+        </div>`;
+    }).join('');
+    
+    listEl.style.display = 'block';
+    listEl.style.position = 'absolute';
+    listEl.style.width = '100%';
+    listEl.style.zIndex = '9999';
+    listEl.style.background = 'var(--bg-3)';
+  } catch (err) {
+    console.error('Suggestion error:', err);
+    listEl.style.display = 'none';
+  }
+}
+
+function selectDrugSuggestion(itemEl, name) {
+  const input = itemEl.parentElement.previousElementSibling;
+  input.value = name;
+  itemEl.parentElement.style.display = 'none';
+  
+  // Auto-fill dose if it was part of the name (e.g. "Paracetamol 500mg")
+  const doseInput = input.parentElement.parentElement.querySelector('.rx-drug-dose');
+  if (doseInput) {
+    const parts = name.split(' ');
+    if (parts.length > 1) {
+      doseInput.value = parts.slice(1).join(' ');
+      input.value = parts[0];
+    }
+  }
+}
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.suggestion-wrap')) {
+    document.querySelectorAll('.suggestion-list').forEach(el => el.style.display = 'none');
+  }
+});
