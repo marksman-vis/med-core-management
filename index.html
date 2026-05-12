@@ -158,17 +158,13 @@
 
   <div class="login-footer">
     MedCore Hospital &copy; 2026 &nbsp;|&nbsp; <a href="#">Privacy Policy</a> &nbsp;|&nbsp; <a href="#">Support</a>
-    <br><br><a href="#" onclick="forceReset()" style="color:var(--text-light);text-decoration:underline;">Fix: Reset System Cache</a>
+
   </div>
 </div>
 
 <script src="js/data.js?v=5"></script>
 <script>
-  function forceReset() {
-    localStorage.clear();
-    alert('System cache cleared! Page will now reload.');
-    window.location.href = 'index.html';
-  }
+
   const demos = {
     admin:   { email:'vishalingle3265@gmail.com',   pass:'vishal123',   hint:'vishalingle3265@gmail.com / vishal123'   },
     doctor:  { email:'doctor@medcore.in',  pass:'doctor123',  hint:'doctor@medcore.in / doctor123'  },
@@ -188,7 +184,7 @@
     document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('tab' + role.charAt(0).toUpperCase() + role.slice(1)).classList.add('active');
     
-    if (role === 'admin') {
+    if (role === 'admin' || role === 'doctor' || role === 'staff') {
       document.getElementById('demoHintText').innerHTML = '';
       document.getElementById('emailInput').value = '';
       document.getElementById('passInput').value = '';
