@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MedCore HMS — Admin Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/staff.css"/>
+</head>
+<body>
+<script>
+window.addEventListener('error', function(e) {
+  alert("CRITICAL ERROR: " + e.message + " at " + e.filename + ":" + e.lineno);
+});
+if(localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');
+</script>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"></div>
+      <div><div class="logo-text">MedCore</div><div class="logo-sub">Admin Portal</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Management</div>
+      <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">🏠</span>Dashboard</button>
+      <button class="nav-item" onclick="showPage('doctors')" id="nav-doctors"><span class="nav-icon">👨‍⚕️</span>Manage Doctors</button>
+      <button class="nav-item" onclick="showPage('staff')" id="nav-staff"><span class="nav-icon">👩‍💼</span>Manage Staff</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" id="userCard">
+        <div class="user-avatar" id="userAvatar">AD</div>
+        <div><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">System Admin</div></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="width:100%;margin-top:8px;" onclick="logout()">🚪 Logout</button>
+      <button class="btn btn-sm" style="width:100%;margin-top:8px;background:#ff4d4f;color:white;border:none;" onclick="emergencyReset()">⚠️ Emergency Reset</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" onclick="toggleSidebar()" style="display:none">☰</button>
+      <h2 class="topbar-title" id="pageTitle">Dashboard</h2>
+      <div class="topbar-search"><span>🔍</span><input type="text" id="globalSearch" placeholder="Search..."/></div>
+      <button class="btn btn-sm" style="background:#ff4d4f;color:white;border:none;margin-right:12px;font-weight:600" onclick="logout()">Logout / Go Back</button>
+      <div class="icon-btn" title="Notifications">🔔<span class="badge">1</span></div>
+      <div class="icon-btn" title="Theme" onclick="toggleTheme()">🌙</div>
+    </header>
+    <div class="page-content animate-fadeIn" id="pageContent"></div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="userModalTitle">Add New User</h3>
+      <button class="modal-close" onclick="closeModal('addUserModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="auRole" />
+      <input type="hidden" id="auId" />
+      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="auName" placeholder="e.g. Dr. John Doe"/></div>
+      <div class="form-group"><label class="form-label">Email Address *</label><input class="form-control" id="auEmail" type="email" placeholder="email@medcore.in"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-control" id="auPass" type="password" placeholder="Leave blank to keep current password (if editing)"/></div>
+      
+      <div id="auDocFields" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Specialty</label>
+          <input class="form-control" id="auSpecialty" placeholder="e.g. Cardiology, Pediatrics"/>
+        </div>
+      </div>
+      
+      <div id="auStaffFields" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Job Role</label>
+          <select class="form-control" id="auSubRole">
+            <option value="Nurse">Nurse</option>
+            <option value="Receptionist">Receptionist</option>
+            <option value="Pharmacist">Pharmacist</option>
+            <option value="Lab Tech">Lab Tech</option>
+            <option value="Billing Clerk">Billing Clerk</option>
+            <option value="General Staff">General Staff</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveUser()">👤 Save User</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="js/data.js?v=4"></script>
+<script src="js/admin.js?v=4"></script>
+</body>
+</html>
