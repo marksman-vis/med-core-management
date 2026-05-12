@@ -14,13 +14,13 @@ function showPage(page) {
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const nb = document.getElementById('nav-' + page); if(nb) nb.classList.add('active');
-  const titles = { dashboard: 'Dashboard', doctors: 'Manage Doctors', staff: 'Manage Staff' };
+  const titles = { dashboard: 'Dashboard', doctors: 'Manage Doctors', staff: 'Manage Staff', backup: 'System Backup' };
   document.getElementById('pageTitle').textContent = titles[page] || page;
   
   const el = document.getElementById('pageContent');
   el.className = 'page-content animate-fadeIn';
   
-  const r = { dashboard: renderDash, doctors: renderDoctors, staff: renderStaff };
+  const r = { dashboard: renderDash, doctors: renderDoctors, staff: renderStaff, backup: renderBackup };
   if(r[page]) r[page](el);
   
   const searchInput = document.getElementById('globalSearch');
@@ -227,6 +227,75 @@ function deleteUser(id, name) {
 
 // ── Utilities ──
 
+function renderBackup(el) {
+  el.innerHTML = `
+  <div class="card">
+    <div class="card-header"><span class="card-title">Data Backup & Export</span></div>
+    <div class="card-body">
+      <p style="font-size:14px;color:var(--text-2);margin-bottom:20px;">Download complete patient data as an Excel-compatible CSV file. This backup includes clinical history, contact details, and current statuses.</p>
+      
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:400px">
+        <button class="btn btn-primary" onclick="exportPatientsToCSV()" style="padding:16px">
+          <span style="font-size:18px;margin-right:8px">📥</span> Download Patients Backup (.csv)
+        </button>
+        <div style="font-size:12px;color:var(--text-3);padding:8px;background:var(--bg-2);border-radius:4px;border:1px solid var(--card-border)">
+          <strong>Note:</strong> CSV files can be opened directly in Microsoft Excel, Google Sheets, or any spreadsheet software.
+        </div>
+      </div>
+      
+      <div class="mt-24" style="padding-top:24px;border-top:1px dashed var(--card-border)">
+        <h4 style="margin-bottom:12px;font-size:15px;font-weight:700">System Information</h4>
+        <div style="font-size:13px;color:var(--text-3)">
+          <div style="margin-bottom:4px">• Total Patients in System: <strong>${HMS.patients.length}</strong></div>
+          <div style="margin-bottom:4px">• Active (Admitted/ICU): <strong>${HMS.patients.filter(p=>p.status!=='OPD').length}</strong></div>
+          <div style="margin-bottom:4px">• Archived Records: <strong>${HMS.patients.filter(p=>p.archived).length}</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function exportPatientsToCSV() {
+  const pats = HMS.patients;
+  if(pats.length === 0) { toast('No patient data to export', 'error'); return; }
+  
+  // Define columns
+  const headers = ['ID', 'Name', 'Age', 'Gender', 'Blood Group', 'Phone', 'Email', 'Address', 'Status', 'Ward', 'Bed', 'Admit Date', 'Archived', 'Insurance ID', 'Conditions'];
+  
+  // Format rows
+  const rows = pats.map(p => [
+    p.id,
+    p.name,
+    p.age,
+    p.gender,
+    p.blood,
+    p.phone,
+    p.email,
+    `"${(p.address || '').replace(/"/g, '""')}"`,
+    p.status,
+    p.ward || 'N/A',
+    p.bed || 'N/A',
+    p.admitDate || 'N/A',
+    p.archived ? 'Yes' : 'No',
+    p.insuranceId || 'N/A',
+    `"${(p.conditions || []).join(', ').replace(/"/g, '""')}"`
+  ]);
+  
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `MedCore_Patients_Backup_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  toast('Backup downloaded successfully', 'success');
+}
+
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 function toast(msg, type='info') {
@@ -243,8 +312,4 @@ function toggleTheme() {
 }
 (function initThemeIcon() { if(localStorage.getItem('theme')==='light') document.querySelectorAll('[title="Theme"]').forEach(b=>b.textContent='☀️'); })();
 function logout() { HMS.logout(); window.location.href = 'index.html'; }
-function emergencyReset() {
-  localStorage.clear();
-  alert('Emergency Reset Successful. Cache Cleared.');
-  window.location.href = 'index.html';
-}
+
