@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MedCore HMS — Doctor Portal</title>
+<meta name="description" content="Doctor portal for MedCore Hospital Management System."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/doctor.css"/>
+</head>
+<body>
+<script>if(localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');</script>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"></div>
+      <div><div class="logo-text">MedCore</div><div class="logo-sub">Doctor Portal</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">🏠</span>Dashboard</button>
+      <button class="nav-item" onclick="showPage('patients')" id="nav-patients"><span class="nav-icon">👥</span>My Patients <span class="nav-badge" id="badge-patients">10</span></button>
+      <button class="nav-item" onclick="showPage('prescriptions')" id="nav-prescriptions"><span class="nav-icon">💊</span>E-Prescriptions</button>
+      <button class="nav-item" onclick="showPage('labs')" id="nav-labs"><span class="nav-icon">🔬</span>Lab Orders <span class="nav-badge" id="badge-labs">2</span></button>
+      <div class="nav-section-label">Clinical</div>
+      <button class="nav-item" onclick="showPage('schedule')" id="nav-schedule"><span class="nav-icon">📅</span>Schedule & Rounds</button>
+      <button class="nav-item" onclick="showPage('notes')" id="nav-notes"><span class="nav-icon">📝</span>Clinical Notes</button>
+      <button class="nav-item" onclick="showPage('imaging')" id="nav-imaging"><span class="nav-icon">🩻</span>Imaging / PACS</button>
+      <div class="nav-section-label">Other</div>
+      <button class="nav-item" onclick="showPage('telemedicine')" id="nav-telemedicine"><span class="nav-icon">📹</span>Telemedicine</button>
+      <button class="nav-item" onclick="showPage('analytics')" id="nav-analytics"><span class="nav-icon">📊</span>Analytics</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" id="userCard">
+        <div class="user-avatar" id="userAvatar">PS</div>
+        <div><div class="user-name" id="userName">Dr. Priya Sharma</div><div class="user-role">Cardiologist</div></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="width:100%;margin-top:8px;" onclick="logout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" onclick="toggleSidebar()" style="display:none">☰</button>
+      <h2 class="topbar-title" id="pageTitle">Dashboard</h2>
+      <div class="topbar-search">
+        <span>🔍</span>
+        <input type="text" id="globalSearch" placeholder="Search patients, records…" oninput="handleSearch(this.value)"/>
+      </div>
+      <div class="icon-btn" id="notifBtn" title="Notifications">
+        🔔<span class="badge">3</span>
+      </div>
+      <div class="icon-btn" title="Theme" onclick="toggleTheme()">🌙</div>
+    </header>
+
+    <div class="page-content animate-fadeIn" id="pageContent"></div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Patient Modal -->
+<div class="modal-overlay" id="patientModal">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalPatientName">Patient EHR</h3>
+      <button class="modal-close" onclick="closeModal('patientModal')">✕</button>
+    </div>
+    <div class="modal-body" id="modalPatientBody"></div>
+  </div>
+</div>
+
+<!-- Prescription Modal -->
+<div class="modal-overlay" id="rxModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h3 class="modal-title">New E-Prescription</h3>
+      <button class="modal-close" onclick="closeModal('rxModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Patient</label>
+        <select class="form-control" id="rxPatient"></select>
+      </div>
+      <div id="rxDrugsContainer">
+        <div class="rx-drug-row" style="background:var(--bg-2);padding:12px;border-radius:6px;margin-bottom:12px;position:relative">
+          <button class="icon-btn" style="position:absolute;top:4px;right:4px;color:var(--danger)" onclick="this.parentElement.remove()">✕</button>
+          <div class="form-group"><label class="form-label">Drug Name</label><input class="form-control rx-drug-name" placeholder="e.g. Amlodipine"/></div>
+          <div class="grid-2">
+            <div class="form-group"><label class="form-label">Dose</label><input class="form-control rx-drug-dose" placeholder="e.g. 5mg"/></div>
+            <div class="form-group"><label class="form-label">Frequency</label><select class="form-control rx-drug-freq"><option>Once daily</option><option>Twice daily</option><option>Three times daily</option><option>PRN</option><option>Once at night</option></select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Duration</label><input class="form-control rx-drug-dur" placeholder="e.g. 30 days"/></div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-bottom:12px" onclick="addRxDrugRow()">+ Add Another Drug</button>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-control" id="rxNotes" rows="3" placeholder="Special instructions…"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('rxModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="savePrescription()">💊 Save Prescription</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lab Order Modal -->
+<div class="modal-overlay" id="labModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Order Lab Test</h3>
+      <button class="modal-close" onclick="closeModal('labModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Patient</label>
+        <select class="form-control" id="labPatient"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Test Name</label>
+        <select class="form-control" id="labTest">
+          <option>Complete Blood Count</option><option>HbA1c</option><option>Lipid Panel</option>
+          <option>Creatinine & BUN</option><option>LFT</option><option>Thyroid Panel</option>
+          <option>ANA Panel</option><option>BNP & Troponin</option><option>Urine Routine</option><option>ECG</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-control" id="labPriority">
+          <option>Routine</option><option>Urgent</option><option>STAT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <input class="form-control" id="labNotes" placeholder="Clinical indication…"/>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('labModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveLabOrder()">🔬 Place Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Telemedicine Modal -->
+<div class="modal-overlay" id="teleModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Telemedicine Call</h3>
+      <button class="modal-close" onclick="closeModal('teleModal')">✕</button>
+    </div>
+    <div class="modal-body" id="teleModalBody"></div>
+  </div>
+</div>
+
+<script src="js/data.js?v=6"></script>
+<script src="js/doctor.js?v=6"></script>
+</body>
+</html>

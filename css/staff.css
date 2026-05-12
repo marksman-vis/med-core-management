@@ -1,0 +1,64 @@
+/* Staff Portal Specific Styles */
+
+/* Bed grid */
+.bed-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; }
+.bed-cell {
+  padding:14px 10px; border-radius:var(--radius-sm); text-align:center;
+  border:1px solid var(--card-border); cursor:pointer; transition:var(--transition);
+  font-size:13px; font-weight:600;
+}
+.bed-cell:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+.bed-cell.available { background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3); color:var(--success); }
+.bed-cell.occupied { background:rgba(59,130,246,0.12); border-color:rgba(59,130,246,0.3); color:var(--info); }
+.bed-cell.housekeeping { background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.3); color:var(--warning); }
+.bed-id { font-weight:700; font-size:15px; margin-bottom:4px; }
+.bed-status { font-size:10px; text-transform:uppercase; letter-spacing:0.06em; }
+
+/* Inventory item row */
+.inv-low { color:var(--danger); font-weight:700; }
+.inv-ok { color:var(--success); }
+
+/* Staff card */
+.staff-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+.staff-card {
+  background:var(--card); border:1px solid var(--card-border);
+  border-radius:var(--radius); padding:18px;
+  display:flex; align-items:center; gap:14px;
+  transition:var(--transition); cursor:default;
+}
+.staff-card:hover { border-color: rgba(13,148,136,0.4); transform:translateY(-2px); box-shadow:var(--shadow); }
+.staff-avatar {
+  width:48px; height:48px; border-radius:50%;
+  background:linear-gradient(135deg,var(--secondary),var(--primary));
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.staff-name { font-size:15px; font-weight:700; }
+.staff-info { font-size:13px; color:var(--text-2); }
+
+/* Ward section */
+.ward-section { margin-bottom:24px; }
+.ward-title {
+  font-size:14px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.06em; color:var(--text-2); margin-bottom:12px;
+  padding-bottom:8px; border-bottom:1px solid var(--card-border);
+}
+
+/* Bill receipt look */
+.bill-line {
+  display:flex; justify-content:space-between; padding:8px 0;
+  border-bottom:1px dashed rgba(255,255,255,0.06); font-size:14px;
+}
+.bill-line:last-child { border-bottom:none; }
+.bill-total {
+  display:flex; justify-content:space-between; padding:12px 0;
+  font-size:16px; font-weight:800; border-top:2px solid var(--card-border);
+  margin-top:8px;
+}
+
+/* Doctor availability dot */
+.avail-dot {
+  width:10px; height:10px; border-radius:50%; display:inline-block;
+}
+.avail-dot.online { background:var(--success); box-shadow:0 0 6px var(--success); }
+.avail-dot.offline { background:var(--text-3); }
